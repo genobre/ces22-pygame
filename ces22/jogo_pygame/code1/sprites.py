@@ -45,6 +45,8 @@ class Player(pg.sprite.Sprite):
         self.swim_l = False
         self.swim_up = False
         self.swim_down = False
+        self.atejelly = False
+        self.shield = False
 
         self.current_frame = 0
         self.last_update = 0
@@ -69,6 +71,18 @@ class Player(pg.sprite.Sprite):
         for frame in self.swim_r_frames:
             frame.set_colorkey(BLACK)
             self.swim_l_frames.append(pg.transform.flip(frame, True, False))
+
+        self.swimshield_r_frames = [self.game.tamashieldsprite.sprt(5, 1, 0 % 5),
+                              self.game.tamashieldsprite.sprt(5, 1, 1 % 5),
+                              self.game.tamashieldsprite.sprt(5, 1, 2 % 5),
+                              self.game.tamashieldsprite.sprt(5, 1, 3 % 5),
+                              self.game.tamashieldsprite.sprt(5, 1, 4 % 5)]
+        for frame in self.swimshield_r_frames:
+            frame.set_colorkey(BLACK)
+        self.swimshield_l_frames = []
+        for frame in self.swimshield_r_frames:
+            frame.set_colorkey(BLACK)
+            self.swimshield_l_frames.append(pg.transform.flip(frame, True, False))
 
     def keys(self):
         k = pg.key.get_pressed()
@@ -109,9 +123,15 @@ class Player(pg.sprite.Sprite):
             bottom = self.rect.bottom
             right = self.rect.right
             if self.xVelocity >= 0:
-                self.image = self.swim_r_frames[self.current_frame]
+                if not self.shield:
+                    self.image = self.swim_r_frames[self.current_frame]
+                else:
+                    self.image = self.swimshield_r_frames[self.current_frame]
             else:
-                self.image = self.swim_l_frames[self.current_frame]
+                if not self.shield:
+                    self.image = self.swim_l_frames[self.current_frame]
+                else:
+                    self.image = self.swimshield_l_frames[self.current_frame]
                 self.rect = self.image.get_rect()
                 self.rect.bottom = bottom
                 self.rect.right = right
@@ -175,11 +195,13 @@ class PlasticBag(pg.sprite.Sprite):
 
 
 class Bubble(pg.sprite.Sprite):
-    def __init__(self, game, x_init, y_init, swim_left):
+    def __init__(self, game, x_init, y_init, swim_left, ate_jelly):
         self.groups = game.all_sprites, game.bubbles
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.image = self.game.bubblesprite.sprt(1, 1, 0 % 1)
+        if ate_jelly:
+            self.image = pg.transform.scale(self.image, (16, 16))
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
         self.velocity = 5
