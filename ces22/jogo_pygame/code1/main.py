@@ -93,6 +93,17 @@ class Game(object):
         else:
             self.player.pos.y = startScrollingPosY
             self.stagePosY += -self.player.yVelocity
+
+        # moving bubbles
+        cont = 0
+        for b in self.bubbles:
+            cont += 1
+            if b.rect.left > W:
+                del (self.bubbles[cont - 1])
+
+        # if player gets krills
+        
+
         # if player hits powerup
 
         # Die!
@@ -117,12 +128,6 @@ class Game(object):
                 if self.flag_space == True:
                     self.flag_space = False
 
-        cont = 0
-        for b in self.bubbles:
-            cont += 1
-            b.update()
-            if b.rect.left > W:
-                del (self.bubbles[cont - 1])
 
     def draw(self):
         # Game Loop - draw
