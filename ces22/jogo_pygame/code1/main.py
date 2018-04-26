@@ -1,4 +1,3 @@
-
 import pygame as pg
 import random
 from settings import *
@@ -32,6 +31,8 @@ class Game(object):
         img_dir = path.join(self.dir, 'img')
         self.tamasprite = Spritesheet(path.join(img_dir, "tama.png"))
         self.plasticsprite = Spritesheet(path.join(img_dir, "plastic_bag.png"))
+        self.krillsprite = Spritesheet(path.join(img_dir, "shrimp.png"))
+        self.bubblesprite = Spritesheet(path.join(img_dir, "bubble.png"))
         # load sounds
 
     def new(self):
@@ -40,8 +41,10 @@ class Game(object):
         self.all_sprites = pg.sprite.LayeredUpdates()
         # self.powerups = pg.sprite.Group()
         self.plasticbag = pg.sprite.Group()
+        self.krills = pg.sprite.Group()
         self.player = Player(self)
         self.plastic_timer = 0
+        self.krill_timer = 0
         self.flag_space = False
         self.bubbles = list([])
         self.run()
@@ -71,9 +74,14 @@ class Game(object):
         if plastic_hits:
             self.playing = False
 
+        ##spawn a krill?
+        if now - self.krill_timer > 2000 + random.choice([-1000, -500, 0, 500, 1000]):
+            self.krill_timer = now
+            Krill(self)
+
         ## check
-        self.playerPosX += self.player.xVelocity
-        self.playerPosY += self.player.yVelocity
+        self.playerPosX += self.player.vel.x
+        self.playerPosY += self.player.vel.y
         if self.playerPosX > self.stageWidth - tamaWidth / 2:
             self.playerPosX = self.stageWidth - tamaWidth / 2
         if self.playerPosX < tamaWidth / 2:
@@ -84,7 +92,7 @@ class Game(object):
             self.player.pos.x = self.playerPosX - self.stageWidth + W
         else:
             self.player.pos.x = startScrollingPosX
-            self.stagePosX += -self.player.xVelocity  # Atenção!!!
+            self.stagePosX += -self.player.vel.x  # Atenção!!!
 
         if self.playerPosY < tamaHeight / 2:
             self.playerPosY = tamaHeight
@@ -92,7 +100,8 @@ class Game(object):
             self.playerPosY = 450
         else:
             self.player.pos.y = startScrollingPosY
-            self.stagePosY += -self.player.yVelocity
+            self.stagePosY += -self.player.vel.y
+        # if player hits powerup
 
         # moving bubbles
         cont = 0
@@ -100,11 +109,6 @@ class Game(object):
             cont += 1
             if b.rect.left > W:
                 del (self.bubbles[cont - 1])
-
-        # if player gets krills
-        
-
-        # if player hits powerup
 
         # Die!
 
