@@ -165,3 +165,46 @@ class PlasticBag(pg.sprite.Sprite):
             self.current_frame = (self.current_frame + 1) % len(self.floating_frames)
             self.image = self.floating_frames[self.current_frame]
         self.mask = pg.mask.from_surface(self.image)
+
+        
+class Krill(pg.sprite.Sprite):
+    def __init__(self, game):
+        self.groups = game.all_sprites, game.krills
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.current_frame = 0
+        self.last_update = 0
+        self.load_images()
+        self.image = self.floating_frames[0]
+        self.rect = self.image.get_rect()
+        self.rect.centerx = (W - 30)
+        self.rect.centery = randint(15,H-15)
+        self.vx = -0.1
+
+    def load_images(self):
+        self.floating_frames = [self.game.krillsprite.sprt(6, 1, 0 % 6),
+                                self.game.krillsprite.sprt(6, 1, 1 % 6),
+                                self.game.krillsprite.sprt(6, 1, 2 % 6),
+                                self.game.krillsprite.sprt(6, 1, 3 % 6),
+                                self.game.krillsprite.sprt(6, 1, 4 % 6),
+                                self.game.krillsprite.sprt(6, 1, 5 % 6)]
+        for frame in self.floating_frames:
+            frame.set_colorkey(BLACK)
+
+    def update(self):
+        self.animate()
+        self.rect.x += self.vx
+        center = self.rect.center
+        self.rect = self.image.get_rect()
+        self.rect.center = center
+        if self.rect.left > 800 or self.rect.right < -5:
+            self.kill()
+
+    def animate(self):
+        now = pg.time.get_ticks()
+        # show swimming animation
+        if now - self.last_update > 180:
+            self.last_update = now
+            self.current_frame = (self.current_frame + 1) % len(self.floating_frames)
+            self.image = self.floating_frames[self.current_frame]
+        self.mask = pg.mask.from_surface(self.image)
