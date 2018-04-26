@@ -14,5 +14,9 @@ WHITE = (255, 255, 255, 255)
 startScrollingPosX = W//2
 startScrollingPosY = 50
 
+CENTER_HANDLE = 4
+FONT_NAME = 'arial'
+HS_FILE = "highscore.txt"
+
 tamaWidth = 50
 tamaHeight = 30
