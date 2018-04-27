@@ -1,3 +1,6 @@
+# "This Game Is Over" - Joseph Pueyo http://www.josephpueyo.com/
+# wind by Please credit Lanea Zimmerman
+
 import pygame as pg
 import random
 from settings import *
@@ -83,6 +86,11 @@ class Game(object):
         self.tentaclesprite = Spritesheet(path.join(img_dir, "tentacles.png"))
         self.inksprite = Spritesheet(path.join(img_dir, "ink.png"))
         # load sounds
+        self.snd_dir = path.join(self.dir, 'snd')
+        self.bubble_sound = pg.mixer.Sound(path.join(self.snd_dir, 'pop.ogg'))
+        self.boost_sound = pg.mixer.Sound(path.join(self.snd_dir, 'powerup.wav'))
+        self.hit_sound = pg.mixer.Sound(path.join(self.snd_dir, 'hit.wav'))
+        self.killed_sound = pg.mixer.Sound(path.join(self.snd_dir, 'killed.wav'))
 
     def new(self):
         # start a new game
@@ -116,10 +124,13 @@ class Game(object):
         self.stagePosY = 0
         self.metboss = False
         self.win = False
+        pg.mixer.music.load(path.join(self.snd_dir, 'happy.ogg'))
+        pg.mixer.music.set_volume(0.4)
         self.run()
 
     def run(self):
         # Game Loop
+        pg.mixer.music.play(loops=-1)
         self.playing = True
         while self.playing:
             self.clock.tick(FPS)
@@ -127,6 +138,7 @@ class Game(object):
             self.player.keys()
             self.update()
             self.draw()
+        pg.mixer.music.fadeout(500)
 
     def update(self):
         # Game Loop - Update
@@ -168,18 +180,21 @@ class Game(object):
             krill_shot = pg.sprite.groupcollide(self.bubbles, self.krills, True, True, pg.sprite.collide_mask)
             if krill_shot:
                 self.score += 5
+                self.hit_sound.play()
 
         crab_cls = pg.sprite.groupcollide(self.bubbles, self.crabs, False, False)
         if crab_cls:
             crab_shot = pg.sprite.groupcollide(self.bubbles, self.crabs, True, True, pg.sprite.collide_mask)
             if crab_shot:
                 self.score += 10
+                self.hit_sound.play()
 
         jelly_cls = pg.sprite.groupcollide(self.bubbles, self.jellyfish, False, False)
         if jelly_cls:
             jelly_shot = pg.sprite.groupcollide(self.bubbles, self.jellyfish, True, True, pg.sprite.collide_mask)
             if jelly_shot:
                 self.score += 20
+                self.hit_sound.play()
 
         plastic_cls = pg.sprite.groupcollide(self.bubbles, self.plasticbag, False, False)
         if plastic_cls:
@@ -190,6 +205,7 @@ class Game(object):
                     self.score += 50
                 else:
                     bag.got_shot = True
+                self.hit_sound.play()
 
         can_cls = pg.sprite.groupcollide(self.bubbles, self.cans, False, False)
         if can_cls:
@@ -200,6 +216,7 @@ class Game(object):
                     self.score += 30
                 else:
                     canhit.got_shot = True
+                self.hit_sound.play()
 
         fish_cls = pg.sprite.groupcollide(self.bubbles, self.fishes, False, False)
         if fish_cls:
@@ -212,14 +229,19 @@ class Game(object):
                     if fishhit.life == 1:
                         self.score += 100
                     fishhit.got_shot = True
+                self.hit_sound.play()
 
         tentacle_cls = pg.sprite.groupcollide(self.bubbles, self.tentacles, False, False)
         if tentacle_cls:
-            pg.sprite.groupcollide(self.tentacles, self.bubbles, False, True, pg.sprite.collide_mask)
+            t = pg.sprite.groupcollide(self.tentacles, self.bubbles, False, True, pg.sprite.collide_mask)
+            if t:
+                self.hit_sound.play()
 
         ink_cls = pg.sprite.groupcollide(self.bubbles, self.inks, False, False)
         if ink_cls:
-            pg.sprite.groupcollide(self.inks, self.bubbles, True, True, pg.sprite.collide_mask)
+            i=pg.sprite.groupcollide(self.inks, self.bubbles, True, True, pg.sprite.collide_mask)
+            if i:
+                self.hit_sound.play()
 
         head_cls = pg.sprite.groupcollide(self.bubbles, self.heads, False, False)
         if head_cls:
@@ -234,6 +256,7 @@ class Game(object):
                     h.life -= 0.5
                 if h.life <= 1:
                     self.win = True
+                self.hit_sound.play()
 
         ## Check for collisions of enemies with turtle:
         plastic_hits = pg.sprite.spritecollide(self.player, self.plasticbag,True, pg.sprite.collide_mask)
@@ -242,6 +265,7 @@ class Game(object):
                 self.player.shield = False
             else:
                 self.playing = False
+            self.killed_sound.play()
 
         can_close = pg.sprite.spritecollide(self.player, self.cans, False)
         if can_close:
@@ -251,6 +275,7 @@ class Game(object):
                     self.player.shield = False
                 else:
                     self.playing = False
+                self.killed_sound.play()
 
         fish_close = pg.sprite.spritecollide(self.player, self.fishes, False)
         if fish_close:
@@ -260,6 +285,7 @@ class Game(object):
                     self.player.shield = False
                 else:
                     self.playing = False
+                self.killed_sound.play()
 
         ink_close = pg.sprite.spritecollide(self.player, self.inks, False)
         if ink_close:
@@ -269,6 +295,7 @@ class Game(object):
                     self.player.shield = False
                 else:
                     self.playing = False
+                self.killed_sound.play()
 
         tentacle_close = pg.sprite.spritecollide(self.player, self.tentacles, False)
         if tentacle_close:
@@ -278,6 +305,7 @@ class Game(object):
                     self.player.shield = False
                 else:
                     self.playing = False
+                self.killed_sound.play()
 
         head_close = pg.sprite.spritecollide(self.player, self.heads, False)
         if head_close:
@@ -287,6 +315,7 @@ class Game(object):
                     self.player.shield = False
                 else:
                     self.playing = False
+                self.killed_sound.play()
 
         ## Check for collisions of food with turtle:
         krill_close = pg.sprite.spritecollide(self.player, self.krills, False)
@@ -294,12 +323,14 @@ class Game(object):
             krill_hits = pg.sprite.spritecollide(self.player, self.krills, True, pg.sprite.collide_mask)
             if krill_hits:
                 self.score += 10
+                self.boost_sound.play()
 
         crab_close = pg.sprite.spritecollide(self.player, self.crabs, False)
         if crab_close:
             crab_hits = pg.sprite.spritecollide(self.player, self.crabs, True, pg.sprite.collide_mask)
             if crab_hits:
                 self.player.shield = True
+                self.boost_sound.play()
 
         jelly_close = pg.sprite.spritecollide(self.player, self.jellyfish, False)
         if jelly_close:
@@ -307,6 +338,7 @@ class Game(object):
             if jelly_hits:
                 self.player.atejelly = True
                 self.powerjelly_timer = now
+                self.boost_sound.play()
 
         #checks if you exceeded powerup time:
         if now - self.powerjelly_timer > 5000:
@@ -347,8 +379,10 @@ class Game(object):
         #check if space bar is pressed
         if self.flag_space:
             if self.player.swim_l:
+                self.bubble_sound.play()
                 Bubble(self, self.player.rect.centerx - tamaWidth + 10, self.playerPosY - tamaHeight/2 - 4, self.player.swim_l, self.player.atejelly)
             else:
+                self.bubble_sound.play()
                 Bubble(self, self.player.rect.centerx + tamaWidth/2 + 2, self.playerPosY - tamaHeight / 2 - 4, self.player.swim_l, self.player.atejelly)
             if not self.player.atejelly:
                 self.flag_space = False
@@ -403,6 +437,8 @@ class Game(object):
         intro = True
         index = 0
         global s
+        pg.mixer.music.load(path.join(self.snd_dir, 'wind.ogg'))
+        pg.mixer.music.play(loops=-1)
         s = MainMenuAnimation("Tela_inicial.png", 4, 3)
         while intro:
             self.cliques()
@@ -439,6 +475,7 @@ class Game(object):
                 else:
                     exit_but.draw_button(self.screen, 0 % s.totalCellCount, 764, 31, 4)
             pg.display.update()
+        pg.mixer.music.fadeout(500)
 
     def show_go_screen(self):
         # game over/continue
@@ -447,8 +484,8 @@ class Game(object):
         if self.win:
             self.show_victory_screen()
         else:
-            #pg.mixer.music.load(path.join(self.snd_dir, 'Yippee.ogg'))
-            #pg.mixer.music.play(loops=-1)
+            pg.mixer.music.load(path.join(self.snd_dir, 'ThisGameIsOver.ogg'))
+            pg.mixer.music.play(loops=-1)
             self.screen.fill(BLACK)
             self.draw_text("GAME OVER", 48, WHITE, W / 2, H / 4)
             self.draw_text("Score: " + str(self.score), 22, WHITE, W/ 2, H / 2)
@@ -463,14 +500,14 @@ class Game(object):
             pg.display.flip()
             self.wait_for_key()
             self.playing = False
-            #pg.mixer.music.fadeout(500)
+            pg.mixer.music.fadeout(500)
 
     def show_victory_screen(self):
         # game over/continue
         if not self.running:
             return
-        #pg.mixer.music.load(path.join(self.snd_dir, 'Yippee.ogg'))
-        #pg.mixer.music.play(loops=-1)
+        pg.mixer.music.load(path.join(self.snd_dir, 'happy.ogg'))
+        pg.mixer.music.play(loops=-1)
         self.screen.fill(BLACK)
         self.draw_text("YOU WON!", 48, WHITE, W / 2, H / 4)
         self.draw_text("Score: " + str(self.score), 22, WHITE, W/ 2, H / 2)
@@ -485,7 +522,7 @@ class Game(object):
         pg.display.flip()
         self.wait_for_key()
         self.playing = False
-        #pg.mixer.music.fadeout(500)
+        pg.mixer.music.fadeout(500)
 
     def wait_for_key(self):
         waiting = True
